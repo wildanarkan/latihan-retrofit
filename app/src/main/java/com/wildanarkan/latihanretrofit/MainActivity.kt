@@ -1,46 +1,46 @@
 package com.wildanarkan.latihanretrofit
 
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.wildanarkan.latihanretrofit.ui.theme.LatihanRetrofitTheme
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import retrofit2.Call
+import retrofit2.Response
 
 class MainActivity : ComponentActivity() {
+
+    private val list = ArrayList<PostResponse>()
+    private lateinit var rvPost: RecyclerView // Deklarasikan rvPost sebagai properti
+    private lateinit var tvResponse: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            LatihanRetrofitTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
+        setContentView(R.layout.activity_main)
+
+        // Inisialisasi rvPost di dalam metode onCreate
+        rvPost = findViewById(R.id.rvPost)
+        rvPost.setHasFixedSize(true)
+        rvPost.layoutManager = LinearLayoutManager(this)
+
+        RetrofitClient.instance.getPosts().enqueue(object : retrofit2.Callback<ArrayList<PostResponse>> {
+            override fun onResponse(
+                call: Call<ArrayList<PostResponse>>,
+                response: Response<ArrayList<PostResponse>>
+            ) {
+                val responseCode = response.code().toString()
+                tvResponse = findViewById(R.id.tvResponseCode)
+                tvResponse.text = responseCode
+
+                response.body()?.let { list.addAll(it) }
+
+                val adapter = PostAdapter(list)
+                rvPost.adapter = adapter
             }
-        }
-    }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+            override fun onFailure(call: Call<ArrayList<PostResponse>>, t: Throwable) {
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LatihanRetrofitTheme {
-        Greeting("Android")
+            }
+        })
     }
 }
